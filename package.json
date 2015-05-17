@@ -17,13 +17,13 @@
     "test": "grunt"
   },
   "dependencies": {
-    "ws": "0.7.1",
+    "ws": "0.7.2",
     "node-uuid": "1.4.3"
   },
   "devDependencies": {
     "grunt": "0.4.5",
-    "mocha": "2.2.1",
-    "chai": "2.1.2",
+    "mocha": "2.2.5",
+    "chai": "2.3.0",
     "minimist": "1.1.1"
   }
 }
