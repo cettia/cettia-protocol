@@ -132,47 +132,61 @@ describe("client", function() {
     });
     factory.create("should close the socket", function(done) {
         server.on("socket", function(socket) {
+            socket.on("open", function() {
+                socket.send("abort");
+            });
             socket.on("close", function() {
                 done();
-            })
-            .send("abort");
+            });
         });
         run({transport: this.args.transport});
     });
     factory.create("should exchange an event", function(done) {
         server.on("socket", function(socket) {
+            socket.on("open", function() {
+                socket.send("echo", "data");
+            });
             socket.on("echo", function(data) {
                 data.should.be.equal("data");
                 done();
-            })
-            .send("echo", "data");
+            });
         });
         run({transport: this.args.transport});
     });
     factory.create("should exchange an event containing of multi-byte characters", function(done) {
         server.on("socket", function(socket) {
+            socket.on("open", function() {
+                socket.send("echo", "라면");
+            });
             socket.on("echo", function(data) {
                 data.should.be.equal("라면");
                 done();
-            })
-            .send("echo", "라면");
+            });
         });
         run({transport: this.args.transport});
     });
     factory.create("should exchange an event of 2KB", function(done) {
         var text2KB = Array(2048).join("K");
         server.on("socket", function(socket) {
+            socket.on("open", function() {
+                socket.send("echo", text2KB);
+            });
             socket.on("echo", function(data) {
                 data.should.be.equal(text2KB);
                 done();
-            })
-            .send("echo", text2KB);
+            });
         });
         run({transport: this.args.transport});
     });
     factory.create("should not lose any event in an exchange of twenty events", function(done) {
         var timer, sent = [], received = [];
         server.on("socket", function(socket) {
+            socket.on("open", function() {
+                for (var i = 0; i < 20; i++) {
+                    sent.push(i);
+                    socket.send("echo", i);
+                }
+            });
             socket.on("echo", function(i) {
                 received.push(i);
                 clearTimeout(timer);
@@ -181,10 +195,6 @@ describe("client", function() {
                     done();
                 }, received.length === 20 ? 0 : 5000);
             });
-            for (var i = 0; i < 20; i++) {
-                sent.push(i);
-                socket.send("echo", i);
-            }
         });
         run({transport: this.args.transport});
     });
@@ -204,49 +214,57 @@ describe("client", function() {
     describe("reply", function() {
         factory.create("should execute the resolve callback when receiving event", function(done) {
             server.on("socket", function(socket) {
-                socket.send("/reply/inbound", {type: "resolved", data: Math.PI}, function(value) {
-                    value.should.be.equal(Math.PI);
-                    done();
-                }, function() {
-                    true.should.be.false;
+                socket.on("open", function() {
+                    socket.send("/reply/inbound", {type: "resolved", data: Math.PI}, function(value) {
+                        value.should.be.equal(Math.PI);
+                        done();
+                    }, function() {
+                        true.should.be.false;
+                    });
                 });
             });
             run({transport: this.args.transport});
         });
         factory.create("should execute the reject callback when receiving event", function(done) {
             server.on("socket", function(socket) {
-                socket.send("/reply/inbound", {type: "rejected", data: Math.PI}, function() {
-                    true.should.be.false;
-                }, function(value) {
-                    value.should.be.equal(Math.PI);
-                    done();
+                socket.on("open", function() {
+                    socket.send("/reply/inbound", {type: "rejected", data: Math.PI}, function() {
+                        true.should.be.false;
+                    }, function(value) {
+                        value.should.be.equal(Math.PI);
+                        done();
+                    });
                 });
             });
             run({transport: this.args.transport});
         });
         factory.create("should execute the resolve callback when sending event", function(done) {
             server.on("socket", function(socket) {
+                socket.on("open", function() {
+                    socket.send("/reply/outbound", {type: "resolved", data: Math.E});
+                });
                 socket.on("test", function(data, reply) {
                     reply.resolve(data);
                     this.on("done", function(value) {
                         value.should.be.equal(Math.E);
                         done();
                     });
-                })
-                .send("/reply/outbound", {type: "resolved", data: Math.E});
+                });
             });
             run({transport: this.args.transport});
         });
         factory.create("should execute the reject callback when sending event", function(done) {
             server.on("socket", function(socket) {
+                socket.on("open", function() {
+                    socket.send("/reply/outbound", {type: "rejected", data: Math.E})
+                });
                 socket.on("test", function(data, reply) {
                     reply.reject(data);
                     this.on("done", function(value) {
                         value.should.be.equal(Math.E);
                         done();
                     });
-                })
-                .send("/reply/outbound", {type: "rejected", data: Math.E});
+                });
             });
             run({transport: this.args.transport});
         });
