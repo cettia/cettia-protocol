@@ -11,19 +11,19 @@
     "type": "git",
     "url": "https://github.com/cettia/cettia-protocol.git"
   },
-  "license": "Apache License, Version 2.0",
+  "license": "Apache-2.0",
   "main": "./lib/index",
   "scripts": {
     "test": "grunt"
   },
   "dependencies": {
-    "ws": "0.7.2",
-    "node-uuid": "1.4.3"
+    "ws": "1.0.1",
+    "node-uuid": "1.4.7"
   },
   "devDependencies": {
     "grunt": "0.4.5",
-    "mocha": "2.2.5",
-    "chai": "2.3.0",
-    "minimist": "1.1.1"
+    "mocha": "2.4.5",
+    "chai": "3.5.0",
+    "minimist": "1.2.0"
   }
 }
