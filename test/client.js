@@ -140,13 +140,37 @@ describe("client", function() {
     });
     run({transport: this.args.transport});
   });
-  factory.create("should exchange an event", function(done) {
+  factory.create("should exchange a text event", function(done) {
     server.on("socket", function(socket) {
       socket.on("open", function() {
         socket.send("echo", "data");
       });
       socket.on("echo", function(data) {
         data.should.be.equal("data");
+        done();
+      });
+    });
+    run({transport: this.args.transport});
+  });
+  factory.create("should exchange a binary event", function(done) {
+    server.on("socket", function(socket) {
+      socket.on("open", function() {
+        socket.send("echo", Buffer("data"));
+      });
+      socket.on("echo", function(data) {
+        data.should.be.deep.equal(Buffer("data"));
+        done();
+      });
+    });
+    run({transport: this.args.transport});
+  });
+  factory.create("should exchange a composite event", function(done) {
+    server.on("socket", function(socket) {
+      socket.on("open", function() {
+        socket.send("echo", {text: "data", binary: Buffer("data")});
+      });
+      socket.on("echo", function(data) {
+        data.should.be.deep.equal({text: "data", binary: Buffer("data")});
         done();
       });
     });

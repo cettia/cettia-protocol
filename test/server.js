@@ -95,13 +95,35 @@ describe("server", function() {
       });
     });
   });
-  factory.create("should exchange an event", function(done) {
+  factory.create("should exchange a text event", function(done) {
     open({transport: this.args.transport}, function(socket) {
       socket.on("open", function() {
         this.send("echo", "data");
       })
       .on("echo", function(data) {
         data.should.be.equal("data");
+        done();
+      });
+    });
+  });
+  factory.create("should exchange a binary event", function(done) {
+    open({transport: this.args.transport}, function(socket) {
+      socket.on("open", function() {
+        this.send("echo", Buffer("data"));
+      })
+      .on("echo", function(data) {
+        data.should.be.deep.equal(Buffer("data"));
+        done();
+      });
+    });
+  });
+  factory.create("should exchange a composite event", function(done) {
+    open({transport: this.args.transport}, function(socket) {
+      socket.on("open", function() {
+        this.send("echo", {text: "data", binary: Buffer("data")});
+      })
+      .on("echo", function(data) {
+        data.should.be.deep.equal({text: "data", binary: Buffer("data")});
         done();
       });
     });
