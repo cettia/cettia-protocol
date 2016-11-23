@@ -18,8 +18,8 @@
   },
   "dependencies": {
     "msgpack-lite": "0.1.17",
-    "node-uuid": "1.4.7",
     "traverse": "0.6.6",
+    "uuid": "^3.0.0",
     "ws": "1.0.1"
   },
   "devDependencies": {
