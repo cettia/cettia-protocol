@@ -1,6 +1,6 @@
 {
   "name": "cettia-protocol",
-  "version": "1.0.0-Beta1",
+  "version": "1.0.0-Beta2",
   "homepage": "http://cettia.io/projects/cettia-protocol/",
   "description": "A reference implementation and test suite for Cettia protocol",
   "author": {
@@ -17,15 +17,15 @@
     "test": "grunt"
   },
   "dependencies": {
-    "msgpack-lite": "0.1.17",
-    "traverse": "0.6.6",
+    "msgpack-lite": "^0.1.26",
+    "traverse": "^0.6.6",
     "uuid": "^3.0.0",
-    "ws": "1.0.1"
+    "ws": "^2.0.3"
   },
   "devDependencies": {
-    "grunt": "0.4.5",
-    "mocha": "2.4.5",
-    "chai": "3.5.0",
-    "minimist": "1.2.0"
+    "chai": "^3.5.0",
+    "grunt": "^1.0.1",
+    "minimist": "^1.2.0",
+    "mocha": "^3.2.0"
   }
 }
