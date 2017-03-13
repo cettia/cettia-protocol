@@ -2,8 +2,6 @@ var cettia = require("../../lib/index");
 var url = require("url");
 var http = require("http");
 
-http.globalAgent.maxSockets = Infinity;
-
 http.createServer(function(req, res) {
   var urlObj = url.parse(req.url, true);
   var query = urlObj.query;

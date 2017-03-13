@@ -6,8 +6,6 @@ var querystring = require("querystring");
 var crypto = require("crypto");
 var cettia = require("../lib/index");
 
-http.globalAgent.maxSockets = Infinity;
-
 // A factory to create a group of test
 var factory = {
   args: parseArgs(process.argv, {
