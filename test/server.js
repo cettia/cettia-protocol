@@ -48,10 +48,10 @@ describe("server", function() {
           uri = uri.replace(/^http/, "ws");
           break;
         case "httpstream":
-          uri += "?transport=stream";
+          uri += "?cettia-transport-name=stream";
           break;
         case "httplongpoll":
-          uri += "?transport=longpoll";
+          uri += "?cettia-transport-name=longpoll";
           break;
         default:
           throw new Error("Unsupported transport");
