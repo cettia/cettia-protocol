@@ -34,14 +34,6 @@ describe("client", function() {
   // To be destroyed
   var sockets = [];
   var netSockets = [];
-  // A Cettia server
-  var server = cettia.createServer();
-  server.on("socket", function(socket) {
-    sockets.push(socket);
-    socket.on("close", function() {
-      sockets.splice(sockets.indexOf(socket), 1);
-    });
-  });
   // An HTTP server to install Cettia server
   var httpServer = http.createServer();
   httpServer.on("connection", function(socket) {
@@ -51,23 +43,35 @@ describe("client", function() {
     });
   });
   var httpTransportServer = cettia.transport.createHttpServer();
-  httpTransportServer.on("transport", server.handle);
+  httpTransportServer.on("transport", function(transport) {
+    server.handle(transport);
+  });
   httpServer.on("request", function(req, res) {
     if (url.parse(req.url).pathname === "/cettia") {
       httpTransportServer.handle(req, res);
     }
   });
   var wsTransportServer = cettia.transport.createWebSocketServer();
-  wsTransportServer.on("transport", server.handle);
+  wsTransportServer.on("transport", function(transport) {
+    server.handle(transport);
+  });
   httpServer.on("upgrade", function(req, sock, head) {
     if (url.parse(req.url).pathname === "/cettia") {
       wsTransportServer.handle(req, sock, head);
     }
   });
 
+  function setupServer(options) {
+    server = cettia.createServer(options);
+    server.on("socket", function(socket) {
+      sockets.push(socket);
+      socket.on("close", function() {
+        sockets.splice(sockets.indexOf(socket), 1);
+      });
+    });
+  }
+
   function run(options) {
-    server.setHeartbeat(options.heartbeat || 20000);
-    server.set_heartbeat(options._heartbeat || 5000);
     var params = {
       uri: "http://localhost:" + httpServer.address().port + "/cettia"
     };
@@ -107,14 +111,7 @@ describe("client", function() {
       done();
     });
   });
-  beforeEach(function() {
-    // To restore the original stack
-    this.socketListeners = server.listeners("socket");
-  });
   afterEach(function() {
-    // Remove the listener added by the test and restore the original stack
-    server.removeAllListeners("socket");
-    this.socketListeners.forEach(server.on.bind(server, "socket"));
     // To release stress of browsers, clean sockets
     sockets.forEach(function(socket) {
       socket.close();
@@ -122,12 +119,14 @@ describe("client", function() {
   });
 
   factory.create("should open a new socket", function(done) {
+    setupServer();
     server.on("socket", function(socket) {
       done();
     });
     run({transport: this.args.transport});
   });
   factory.create("should close the socket", function(done) {
+    setupServer();
     server.on("socket", function(socket) {
       socket.on("open", function() {
         socket.send("abort");
@@ -139,6 +138,7 @@ describe("client", function() {
     run({transport: this.args.transport});
   });
   factory.create("should exchange a text event", function(done) {
+    setupServer();
     server.on("socket", function(socket) {
       socket.on("open", function() {
         socket.send("echo", "data");
@@ -151,6 +151,7 @@ describe("client", function() {
     run({transport: this.args.transport});
   });
   factory.create("should exchange a binary event", function(done) {
+    setupServer();
     server.on("socket", function(socket) {
       socket.on("open", function() {
         socket.send("echo", Buffer("data"));
@@ -163,6 +164,7 @@ describe("client", function() {
     run({transport: this.args.transport});
   });
   factory.create("should exchange a composite event", function(done) {
+    setupServer();
     server.on("socket", function(socket) {
       socket.on("open", function() {
         socket.send("echo", {text: "data", binary: Buffer("data")});
@@ -175,6 +177,7 @@ describe("client", function() {
     run({transport: this.args.transport});
   });
   factory.create("should exchange an event containing of multi-byte characters", function(done) {
+    setupServer();
     server.on("socket", function(socket) {
       socket.on("open", function() {
         socket.send("echo", "라면");
@@ -187,6 +190,7 @@ describe("client", function() {
     run({transport: this.args.transport});
   });
   factory.create("should exchange an event of 2KB", function(done) {
+    setupServer();
     var text2KB = Array(2048).join("K");
     server.on("socket", function(socket) {
       socket.on("open", function() {
@@ -200,6 +204,7 @@ describe("client", function() {
     run({transport: this.args.transport});
   });
   factory.create("should not lose any event in an exchange of twenty events", function(done) {
+    setupServer();
     var timer, sent = [], received = [];
     server.on("socket", function(socket) {
       socket.on("open", function() {
@@ -220,6 +225,7 @@ describe("client", function() {
     run({transport: this.args.transport});
   });
   factory.create("should close the socket if heartbeat fails", function(done) {
+    setupServer({heartbeat: 2500, _heartbeat: 2400});
     server.on("socket", function(socket) {
       // Breaks heartbeat functionality
       socket.send = function() {
@@ -231,10 +237,11 @@ describe("client", function() {
         done();
       });
     });
-    run({transport: this.args.transport, heartbeat: 2500, _heartbeat: 2400});
+    run({transport: this.args.transport});
   });
   describe("reply", function() {
     factory.create("should execute the resolve callback when receiving event", function(done) {
+      setupServer();
       server.on("socket", function(socket) {
         socket.on("open", function() {
           socket.send("/reply/inbound", {type: "resolved", data: Math.PI}, function(value) {
@@ -248,6 +255,7 @@ describe("client", function() {
       run({transport: this.args.transport});
     });
     factory.create("should execute the reject callback when receiving event", function(done) {
+      setupServer();
       server.on("socket", function(socket) {
         socket.on("open", function() {
           socket.send("/reply/inbound", {type: "rejected", data: Math.PI}, function() {
@@ -261,6 +269,7 @@ describe("client", function() {
       run({transport: this.args.transport});
     });
     factory.create("should execute the resolve callback when sending event", function(done) {
+      setupServer();
       server.on("socket", function(socket) {
         socket.on("open", function() {
           socket.send("/reply/outbound", {type: "resolved", data: Math.E});
@@ -276,6 +285,7 @@ describe("client", function() {
       run({transport: this.args.transport});
     });
     factory.create("should execute the reject callback when sending event", function(done) {
+      setupServer();
       server.on("socket", function(socket) {
         socket.on("open", function() {
           socket.send("/reply/outbound", {type: "rejected", data: Math.E})
