@@ -1,6 +1,6 @@
 {
   "name": "cettia-protocol",
-  "version": "1.0.0-RC1",
+  "version": "1.0.0",
   "homepage": "http://cettia.io/projects/cettia-protocol/",
   "description": "A reference implementation and test suite for Cettia protocol",
   "author": {
